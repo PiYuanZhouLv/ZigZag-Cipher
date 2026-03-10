@@ -6,7 +6,7 @@ import os
 import threading
 from datetime import datetime
 
-try:  # 修复 Windows 下缩放导致 tkinter 字体模糊的问题
+try:
     import ctypes
     if 'windll' in dir(ctypes):
         PROCESS_PER_MONITOR_DPI_AWARE = 2
@@ -595,6 +595,22 @@ class ZigzagGUI:
         self.root = root
         self.root.title("ZigZag 图片加密工具")
         try:
+            # 获取实际的 DPI 并设置缩放
+            import ctypes
+            # 先更新一下窗口以确保 winfo_id 有效
+            self.root.update_idletasks()
+            hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+            dpi = ctypes.windll.user32.GetDpiForWindow(hwnd)
+            scale_factor = dpi / 96.0
+            self.root.tk.call('tk', 'scaling', scale_factor)
+        except Exception as e:
+            print(f"DPI缩放设置失败: {e}")
+            try:
+                # 如果失败，使用默认的1.25倍缩放
+                self.root.tk.call('tk', 'scaling', 1.25)
+            except:
+                pass
+        try:
             img = ImageTk.PhotoImage(Image.open('ZigZag Cipher.png'))
             self.root.iconphoto(True, img)
         except Exception as e:
@@ -662,7 +678,7 @@ class ZigzagGUI:
         ).pack(side=tk.LEFT)
         tk.Label(
             bar,
-            text="v1.0",
+            text="v1.0.1",
             font=FONTS["small"],
             fg=COLORS["text_muted"],
             bg=COLORS["bg"]
@@ -671,7 +687,7 @@ class ZigzagGUI:
         # 版权信息
         tk.Label(
             bar,
-            text="Copyright by Cr9flm1nd",
+            text="by Cr9flm1nd",
             font=FONTS["small"],
             fg=COLORS["accent"],
             bg=COLORS["bg"]
